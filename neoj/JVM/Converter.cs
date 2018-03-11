@@ -89,6 +89,9 @@ namespace Neo.Compiler.JVM
             foreach (var key in outModule.mapMethods.Keys)
             {
                 var name = key.Substring(key.IndexOf("::") + 2);
+                var i = name.IndexOf('(');
+                name = name.Substring(0, i);
+
                 if (name == ("Main"))
                 {
                     var m = outModule.mapMethods[key];

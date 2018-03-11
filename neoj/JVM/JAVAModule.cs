@@ -52,7 +52,7 @@ namespace Neo.Compiler.JVM
                             data = ms.ToArray();
                         }
                         var cc = LoadClassByBytes(data, codepath);
-                        var bskip = cc.classfile.Name.IndexOf("org.neo.") == 0;
+                        var bskip = cc.classfile.Name.IndexOf("org.neo.") == 0 || cc.classfile.Name.IndexOf("src.org.neo.") == 0;
                         cc.skip = bskip;
                     }
 
@@ -84,7 +84,7 @@ namespace Neo.Compiler.JVM
                 var sign = "L" + this.classfile.Name + ";";
                 foreach (var f in this.classfile.Fields)
                 {
-                    if (f.Name == "INSTANCE"&&f.IsStatic&&f.Signature==sign)
+                    if (f.Name == "INSTANCE" && f.IsStatic && f.Signature == sign)
                     {
                         isKtObj = true;
                         break;
@@ -95,7 +95,7 @@ namespace Neo.Compiler.JVM
             {
 
                 bool bskip = false;
-                if (m.IsStatic == false&& isKtObj==false)
+                if (m.IsStatic == false && isKtObj == false)
                 {
                     bskip = true;
                     //静态成员不要，除非是kotlin 的 object 对象，相当于静态
@@ -119,11 +119,11 @@ namespace Neo.Compiler.JVM
                     bskip = true;
                 var nm = new JavaMethod(this, m);
                 nm.skip = bskip;
-                if (bskip == false && methods.ContainsKey(m.Name))
-                {
-                    throw new Exception("already have a func named:" + classfile.Name + "." + m.Name);
-                }
-                this.methods[m.Name] = nm;
+                //if (bskip == false && methods.ContainsKey(m.Name))
+                //{
+                //    throw new Exception("already have a func named:" + classfile.Name + "." + m.Name);
+                //}
+                this.methods[m.Name + m.Signature] = nm;
             }
             this.superClass = this.classfile.SuperClass;
         }
