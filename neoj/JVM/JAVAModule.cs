@@ -16,7 +16,7 @@ namespace Neo.Compiler.JVM
         public JavaClass LoadClassByBytes(byte[] data, string srccode = null)
         {
             var js = new javaloader.ClassFile(data, 0, data.Length);
-            var _class = new JavaClass(js, null);
+            var _class = new JavaClass(this, js, null);
             this.classes[_class.classfile.Name] = _class;
             return _class;
         }
@@ -68,9 +68,53 @@ namespace Neo.Compiler.JVM
     }
     public class JavaClass
     {
-        public JavaClass(javaloader.ClassFile classfile, string[] srcfile = null)
+        public Dictionary<string, byte[]> ConstValues = new Dictionary<string, byte[]>();
+        public bool IsEnum = false;
+        void _InitConsts(Instruction[] Instructions)
         {
+            int lastv = -1;
+            foreach (var c in Instructions)
+            {
+                if (c.NormalizedOpCode == javaloader.NormalizedByteCode.__iconst)
+                {
+                    lastv = c.Arg1;
+                }
+                else if (c.NormalizedOpCode == javaloader.NormalizedByteCode.__invokespecial)
+                {
+                    continue;
+                }
+                else if (c.NormalizedOpCode == javaloader.NormalizedByteCode.__putstatic)
+                {
+                    var p1 = c.Arg1;
+                    if (this.classfile.constantpool[p1] is javaloader.ClassFile.ConstantPoolItemFieldref &&
+                       lastv >= 0)
+                    {
+                        var fref = (javaloader.ClassFile.ConstantPoolItemFieldref)this.classfile.constantpool[p1];
+                        this.ConstValues[fref.Name] = new System.Numerics.BigInteger(lastv).ToByteArray();
+                    }
+                }
+                else
+                {
+                    lastv = -1;
+                }
+            }
+        }
+        public JavaModule module;
+        public JavaClass(JavaModule module, javaloader.ClassFile classfile, string[] srcfile = null)
+        {
+            this.module = module;
             this.classfile = classfile;
+            if (this.classfile.IsEnum)
+            {
+                this.IsEnum = true;
+                foreach (var m in this.classfile.Methods)
+                {
+                    if (m.Name == javaloader.StringConstants.CLINIT)
+                    {
+                        _InitConsts(m.Instructions);
+                    }
+                }
+            }
             this.srcfile = srcfile;
             if (this.srcfile == null)
                 this.srcfile = new string[0];
