@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace Neo.Compiler.MSIL
 {
@@ -14,9 +15,11 @@ namespace Neo.Compiler.MSIL
         {
 
             //get array
-            _Convert1by1(VM.OpCode.FROMALTSTACK, src, to);
-            _Convert1by1(VM.OpCode.DUP, null, to);
-            _Convert1by1(VM.OpCode.TOALTSTACK, null, to);
+            //_Convert1by1(VM.OpCode.FROMALTSTACK, src, to);
+            //_Convert1by1(VM.OpCode.DUP, null, to);
+            //_Convert1by1(VM.OpCode.TOALTSTACK, null, to);
+            _Convert1by1(VM.OpCode.DUPFROMALTSTACK, src, to);
+
             //get i
             _ConvertPush(pos + method.paramtypes.Count, null, to);//翻转取参数顺序
 
@@ -60,9 +63,10 @@ namespace Neo.Compiler.MSIL
         private void _ConvertLdLoc(ILMethod method, OpCode src, NeoMethod to, int pos)
         {
             //get array
-            _Convert1by1(VM.OpCode.FROMALTSTACK, src, to);
-            _Convert1by1(VM.OpCode.DUP, null, to);
-            _Convert1by1(VM.OpCode.TOALTSTACK, null, to);
+            //_Convert1by1(VM.OpCode.FROMALTSTACK, src, to);
+            //_Convert1by1(VM.OpCode.DUP, null, to);
+            //_Convert1by1(VM.OpCode.TOALTSTACK, null, to);
+            _Convert1by1(VM.OpCode.DUPFROMALTSTACK, src, to);
             //get i
             _ConvertPush(pos + method.paramtypes.Count, null, to);//翻转取参数顺序
             _Convert1by1(VM.OpCode.PICKITEM, null, to);
@@ -137,9 +141,10 @@ namespace Neo.Compiler.MSIL
             }
             //}
             //get array
-            _Convert1by1(VM.OpCode.FROMALTSTACK, src, to);
-            _Convert1by1(VM.OpCode.DUP, null, to);
-            _Convert1by1(VM.OpCode.TOALTSTACK, null, to);
+            //_Convert1by1(VM.OpCode.FROMALTSTACK, src, to);
+            //_Convert1by1(VM.OpCode.DUP, null, to);
+            //_Convert1by1(VM.OpCode.TOALTSTACK, null, to);
+            _Convert1by1(VM.OpCode.DUPFROMALTSTACK, src, to);
             //get i
             _ConvertPush(pos, null, to);//翻转取参数顺序
             _Convert1by1(VM.OpCode.PICKITEM, null, to);
@@ -292,11 +297,11 @@ namespace Neo.Compiler.MSIL
             }
             return false;
         }
-        public bool IsOpCall(Mono.Cecil.MethodDefinition defs, out string name)
+        public bool IsOpCall(Mono.Cecil.MethodDefinition defs, out VM.OpCode[] opcodes)
         {
+            opcodes = null;
             if (defs == null)
             {
-                name = "";
                 return false;
             }
 
@@ -304,32 +309,24 @@ namespace Neo.Compiler.MSIL
             {
                 if (attr.AttributeType.Name == "OpCodeAttribute")
                 {
+
                     var type = attr.ConstructorArguments[0].Type;
-                    var value = (byte)attr.ConstructorArguments[0].Value;
 
-                    foreach (var t in type.Resolve().Fields)
+                    Mono.Cecil.CustomAttributeArgument[] val = (Mono.Cecil.CustomAttributeArgument[])attr.ConstructorArguments[0].Value;
+
+                    opcodes = new VM.OpCode[val.Length];
+                    for (var j = 0; j < val.Length; j++)
                     {
-                        if (t.Constant != null)
-                        {
-                            if ((byte)t.Constant == value)
-                            {
-
-                                //dosth
-                                name = t.Name;
-                                return true;
-
-                            }
-                        }
+                        opcodes[j] = ((VM.OpCode)(byte)val[j].Value);
                     }
 
-
+                    return true;
                 }
                 //if(attr.t)
             }
-            name = "";
             return false;
-
         }
+
         public bool IsNotifyCall(Mono.Cecil.MethodDefinition defs, Mono.Cecil.MethodReference refs, NeoMethod to, out string name)
         {
 
@@ -382,6 +379,7 @@ namespace Neo.Compiler.MSIL
             int callpcount = 0;
             byte[] callhash = null;
             VM.OpCode callcode = VM.OpCode.NOP;
+            VM.OpCode[] callcodes = null;
 
             Mono.Cecil.MethodDefinition defs = null;
             try
@@ -407,17 +405,23 @@ namespace Neo.Compiler.MSIL
                 calltype = 6;
                 to.lastparam = -1;
             }
-            else if (IsOpCall(defs, out callname))
+            else if (IsOpCall(defs, out callcodes))
             {
-                if (System.Enum.TryParse<VM.OpCode>(callname, out callcode))
-                {
-                    calltype = 2;
-                }
-                else
-                {
-                    throw new Exception("Can not find OpCall:" + callname);
-                }
+                calltype = 2;
+
+                //if (System.Enum.TryParse<VM.OpCode>(callname, out callcode))
+                //{
+                //    calltype = 2;
+                //}
+                //else
+                //{
+                //    throw new Exception("Can not find OpCall:" + callname);
+                //}
             }
+            //else if (IsOpCodesCall(defs, out callcodes))
+            //{
+            //    calltype = 7;
+            //}
             else if (IsSysCall(defs, out callname))
             {
                 calltype = 3;
@@ -505,8 +509,8 @@ namespace Neo.Compiler.MSIL
                     }
                     else
                     {
-                        _Convert1by1(VM.OpCode.INVERT, src, to);
-                        _Insert1(VM.OpCode.EQUAL, "", to);
+                        _Convert1by1(VM.OpCode.EQUAL, src, to);
+                        _Convert1by1(VM.OpCode.NOT, null, to);
                     }
                     ////各类!=指令
                     ////有可能有一些会特殊处理，故还保留独立判断
@@ -690,7 +694,7 @@ namespace Neo.Compiler.MSIL
             bool havethis = md.HasThis;
             if (calltype == 2)
             {
-                //opcode call 
+                //opcode call
             }
             else
             {//翻转参数顺序
@@ -757,13 +761,23 @@ namespace Neo.Compiler.MSIL
             }
             else if (calltype == 2)
             {
-                _Convert1by1(callcode, src, to);
-                return 0;
+                //contains (0 opcode= nonemit, 1 opcode= old opcode  , >=2 opcodes = new multi opcode
+                for (var j = 0; j < callcodes.Length; j++)
+                    _Convert1by1(callcodes[j], src, to);
             }
             else if (calltype == 3)
             {
-                var bytes = Encoding.UTF8.GetBytes(callname);
-                if (bytes.Length > 252) throw new Exception("string is to long");
+                byte[] bytes = null;
+                if (this.outModule.option.useSysCallInteropHash)
+                {
+                    //now neovm use ineropMethod hash for syscall.
+                    bytes = BitConverter.GetBytes(callname.ToInteropMethodHash());
+                }
+                else
+                {
+                    bytes = System.Text.Encoding.UTF8.GetBytes(callname);
+                    if (bytes.Length > 252) throw new Exception("string is to long");
+                }
                 byte[] outbytes = new byte[bytes.Length + 1];
                 outbytes[0] = (byte)bytes.Length;
                 Array.Copy(bytes, 0, outbytes, 1, bytes.Length);
@@ -856,7 +870,7 @@ namespace Neo.Compiler.MSIL
             ILType type;
             if (inModule.mapType.TryGetValue(typename, out type) == false)
             {
-                type = new ILType(null, method.DeclaringType);
+                type = new ILType(null, method.DeclaringType, logger);
                 inModule.mapType[typename] = type;
             }
 
@@ -912,7 +926,7 @@ namespace Neo.Compiler.MSIL
         private int _ConvertNewArr(ILMethod method, OpCode src, NeoMethod to)
         {
             var type = src.tokenType;
-            if (type != "System.Byte")
+            if ((type != "System.Byte") && (type != "System.SByte"))
             {
                 _Convert1by1(VM.OpCode.NEWARRAY, src, to);
                 int n = method.GetNextCodeAddr(src.addr);
@@ -933,13 +947,13 @@ namespace Neo.Compiler.MSIL
                         }
                         return 3;
                     }
-                    throw new Exception("not support this type's init array.");
+                    throw new Exception($"not support this type's init array. type: {type}");
 
                 }
                 return 0;
                 //this.logger.Log("_ConvertNewArr::not support type " + type + " for array.");
             }
-            else
+            else // (type == "System.Byte") || (type == "System.SByte")
             {
                 var code = to.body_Codes.Last().Value;
                 //we need a number
@@ -961,9 +975,13 @@ namespace Neo.Compiler.MSIL
                 int n2 = method.GetNextCodeAddr(n);
                 int n3 = method.GetNextCodeAddr(n2);
                 int n4 = method.GetNextCodeAddr(n3);
-                if (n >= 0 && n2 >= 0 && n3 >= 0 && method.body_Codes[n].code == CodeEx.Dup && method.body_Codes[n2].code == CodeEx.Ldtoken && method.body_Codes[n3].code == CodeEx.Call)
-                {//這是在初始化數組
 
+                if (n >= 0 && n2 >= 0 && n3 >= 0 && method.body_Codes[n].code == CodeEx.Dup && method.body_Codes[n2].code == CodeEx.Ldtoken && method.body_Codes[n3].code == CodeEx.Call)
+                {
+                    // 這是在初始化數組
+                    // en: this is the initialization array
+
+                    // System.Byte or System.SByte
                     var data = method.body_Codes[n2].tokenUnknown as byte[];
                     this._ConvertPush(data, src, to);
 
@@ -1088,9 +1106,10 @@ namespace Neo.Compiler.MSIL
             //now stack  a index, a value
 
             //getarray
-            _Insert1(VM.OpCode.FROMALTSTACK, null, to);
-            _Insert1(VM.OpCode.DUP, null, to);
-            _Insert1(VM.OpCode.TOALTSTACK, null, to);
+            //_Convert1by1(VM.OpCode.FROMALTSTACK, null, to);
+            //_Convert1by1(VM.OpCode.DUP, null, to);
+            //_Convert1by1(VM.OpCode.TOALTSTACK, null, to);
+            _Convert1by1(VM.OpCode.DUPFROMALTSTACK, null, to);
 
             _InsertPush(2, "", to);//move item
             _Insert1(VM.OpCode.ROLL, null, to);
@@ -1156,10 +1175,16 @@ namespace Neo.Compiler.MSIL
                     {
                         if (attr.AttributeType.Name == "OpCodeAttribute")
                         {
+                            //object[] op = method.method.Annotations[0] as object[];
+                            var values = attr.ConstructorArguments[0].Value as Mono.Cecil.CustomAttributeArgument[];
+                            for(var j=0;j<values.Length;j++)
+                            {
+                                var value = (byte)values[j].Value;
+                                VM.OpCode v = (VM.OpCode)value;
+                                _Insert1(v, null, to);
+                            }
                             //var _type = attr.ConstructorArguments[0].Type;
-                            var value = (byte)attr.ConstructorArguments[0].Value;
-                            VM.OpCode v = (VM.OpCode)value;
-                            _Insert1(v, null, to);
+
                             return 0;
                         }
 
@@ -1190,7 +1215,7 @@ namespace Neo.Compiler.MSIL
             //_Convert1by1(VM.OpCode.CLONESTRUCTONLY, src, to);
 
             _ConvertPush(id, null, to);//index
-            _Convert1by1(VM.OpCode.SWAP, null, to);//把item 拿上來 
+            _Convert1by1(VM.OpCode.SWAP, null, to);//把item 拿上來
 
             _Convert1by1(VM.OpCode.SETITEM, null, to);//修改值 //item //index //array
             return 0;

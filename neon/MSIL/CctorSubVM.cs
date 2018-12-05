@@ -99,7 +99,7 @@ namespace Neo.Compiler.MSIL
                         break;
                     case CodeEx.Newarr:
                         {
-                            if (src.tokenType == "System.Byte")
+                            if ((src.tokenType == "System.Byte") || (src.tokenType == "System.SByte"))
                             {
                                 var count = (int)calcStack.Pop();
                                 byte[] data = new byte[count];
@@ -193,6 +193,11 @@ namespace Neo.Compiler.MSIL
                                             if (text.IndexOf("0x") == 0) text = text.Substring(2);
                                             var hex = HexString2Bytes(text);
                                             calcStack.Push(hex);
+                                        }
+                                        else if(attrname=="ToBigInteger")
+                                        {
+                                            var n = System.Numerics.BigInteger.Parse(text);
+                                            calcStack.Push(n);
                                         }
                                     }
                                 }
