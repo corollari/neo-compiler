@@ -29,8 +29,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Mono.Cecil" Version="0.10.0" />
-    <PackageReference Include="Neo.VM" Version="2.3.0" />
+    <ProjectReference Include="..\neon-lib\neon-lib.csproj" />
   </ItemGroup>
-
 </Project>
