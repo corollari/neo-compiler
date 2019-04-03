@@ -1,5 +1,7 @@
 ﻿using Neo.Compiler;
 using Neo.Compiler.MSIL;
+using Neo.VM;
+using Neo.vmext;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,6 +24,7 @@ namespace neon.unittest.testtool
         }
         ILModule modIL;
         ModuleConverter converterIL;
+        byte[] finalAVM;
         void Init(string filename)
         {
             string onlyname = System.IO.Path.GetFileNameWithoutExtension(filename);
@@ -80,6 +83,7 @@ namespace neon.unittest.testtool
             try
             {
                 converterIL.Convert(modIL, option);
+                finalAVM = converterIL.outModule.Build();
             }
             catch (Exception err)
             {
@@ -165,5 +169,35 @@ namespace neon.unittest.testtool
             }
             return bytes.ToArray();
         }
+        ExecutionEngine RunAVM(byte[] data, int addr = 0, StackItem[] _params = null)
+        {
+            var engine = new ExecutionEngine(new Transaction(), new crypto(), new table(), new testapiservice());
+            engine.LoadScript(data);
+            //從指定地址開始執行
+            engine.InvocationStack.Peek().InstructionPointer = addr;
+            if (_params != null)
+            {
+                for (var i = 0; i < _params.Length; i++)
+                {
+                    engine.CurrentContext.EvaluationStack.Push(_params[i]);
+                }
+            }
+            while (((engine.State & VMState.FAULT) == 0) && ((engine.State & VMState.HALT) == 0))
+            {
+                engine.StepInto();
+            }
+            return engine;
+
+        }
+        public ExecutionEngine RunScript(int addr, StackItem[] _params = null)
+        {
+            return RunAVM(finalAVM, addr, _params);
+        }
+        public ExecutionEngine RunMethodAsAStandaloneAVM(NeoMethod method, StackItem[] _params = null)
+        {
+            var bytes = NeoMethodToBytes(method);
+            return RunAVM(bytes, 0, _params);
+        }
+
     }
 }
