@@ -182,10 +182,11 @@ namespace neon.unittest.testtool
                     engine.CurrentContext.EvaluationStack.Push(_params[i]);
                 }
             }
-            while (((engine.State & VMState.FAULT) == 0) && ((engine.State & VMState.HALT) == 0))
-            {
-                engine.StepInto();
-            }
+            engine.Execute();
+            //while (((engine.State & VMState.FAULT) == 0) && ((engine.State & VMState.HALT) == 0))
+            //{
+            //    engine.ExecuteNext();
+            //}
             return engine;
 
         }

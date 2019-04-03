@@ -14,8 +14,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "neon.test", "neon.test", "{3312E472-58B6-451C-9CBC-A2E2A7D68A9A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "neon.unittest", "neon.unittest\neon.unittest.csproj", "{13C50AA9-08EC-4A04-8386-C9BC8DC0398D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BA05B84B-2543-4594-B7DD-81848A242EF8} = {BA05B84B-2543-4594-B7DD-81848A242EF8}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net4smartcontract.test", "net4smartcontract.test\net4smartcontract.test.csproj", "{C3ED2F51-5EEE-491E-B040-C9D25C6459E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net4smartcontract.test", "net4smartcontract.test\net4smartcontract.test.csproj", "{BA05B84B-2543-4594-B7DD-81848A242EF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,17 +46,17 @@ Global
 		{13C50AA9-08EC-4A04-8386-C9BC8DC0398D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13C50AA9-08EC-4A04-8386-C9BC8DC0398D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13C50AA9-08EC-4A04-8386-C9BC8DC0398D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C3ED2F51-5EEE-491E-B040-C9D25C6459E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C3ED2F51-5EEE-491E-B040-C9D25C6459E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C3ED2F51-5EEE-491E-B040-C9D25C6459E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C3ED2F51-5EEE-491E-B040-C9D25C6459E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA05B84B-2543-4594-B7DD-81848A242EF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA05B84B-2543-4594-B7DD-81848A242EF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA05B84B-2543-4594-B7DD-81848A242EF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA05B84B-2543-4594-B7DD-81848A242EF8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{13C50AA9-08EC-4A04-8386-C9BC8DC0398D} = {3312E472-58B6-451C-9CBC-A2E2A7D68A9A}
-		{C3ED2F51-5EEE-491E-B040-C9D25C6459E8} = {3312E472-58B6-451C-9CBC-A2E2A7D68A9A}
+		{BA05B84B-2543-4594-B7DD-81848A242EF8} = {3312E472-58B6-451C-9CBC-A2E2A7D68A9A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DF4A75C3-D663-4169-8C93-3D23E4C3A634}

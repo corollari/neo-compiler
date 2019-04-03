@@ -45,10 +45,10 @@ namespace Neo.vmext
         {
             if (script_hash.Length == 1 && script_hash[0] == 99)
             {
-                return new byte[] { (byte)117, (byte)117, (byte)102 };
+                return new byte[] { (byte)VM.OpCode.DROP, (byte)VM.OpCode.DROP, (byte)VM.OpCode.RET };
 
             }
-            return new byte[] { (byte)81, (byte)102 };
+            return new byte[] { (byte)VM.OpCode.PUSH1, (byte)VM.OpCode.RET };
         }
     }
     public class Transaction : IScriptContainer
