@@ -2,146 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace Neo.Compiler.DotNet.Utils
 {
-    class container : IScriptContainer
+    internal class TestInteropService : IInteropService
     {
-        public byte[] GetMessage()
-        {
-            return new byte[] { 1, 2, 3, 4 };
-        }
+        private readonly Dictionary<uint, Func<ExecutionEngine, bool>> methods = new Dictionary<uint, Func<ExecutionEngine, bool>>();
+        private readonly Dictionary<uint, long> prices = new Dictionary<uint, long>();
 
-        public byte[] ToArray()
-        {
-            throw new NotImplementedException();
-        }
-    }
-    class crypto : ICrypto
-    {
-        public byte[] Hash160(byte[] message)
-        {
-            return new byte[] { 4, 56, 66, 5 };
-        }
-
-        public byte[] Hash256(byte[] message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool VerifySignature(byte[] message, byte[] signature, byte[] pubkey)
-        {
-            return true;
-        }
-    }
-    class table : Neo.VM.IScriptTable
-    {
-        public byte[] GetScript(byte[] script_hash)
-        {
-            if (script_hash.Length == 1 && script_hash[0] == 99)
-            {
-                return new byte[] { (byte)VM.OpCode.DROP, (byte)VM.OpCode.DROP, (byte)VM.OpCode.RET };
-
-            }
-            return new byte[] { (byte)VM.OpCode.PUSH1, (byte)VM.OpCode.RET };
-        }
-    }
-    public class Transaction : IScriptContainer
-    {
-        public Transaction()
-        {
-            this.Inputs.Add(new TransactionInput());
-            this.Outputs.Add(new TransactionOutput());
-        }
-        public byte[] GetMessage()
-        {
-            return new byte[] { 1 };
-            // throw new NotImplementedException();
-        }
-        public byte[] hash = new byte[] { 26, 05, 01 };
-        public byte[] ToArray()
-        {
-            throw new NotImplementedException();
-        }
-        public List<TransactionInput> Inputs = new List<TransactionInput>();
-        public List<TransactionOutput> Outputs = new List<TransactionOutput>();
-    }
-    public class TransactionInput
-    {
-        public byte[] PrevHash
-        {
-            get
-            {
-                return new byte[] { 1, 23, 44, 44 };
-            }
-        }
-
-        public ushort PrevIndex
-        {
-            get
-            {
-                return 7;
-            }
-        }
-        public byte[] ToArray()
-        {
-            throw new NotImplementedException();
-        }
-
-    }
-    public class TransactionOutput
-    {
-        public byte[] PrevHash
-        {
-            get
-            {
-                return new byte[] { 1, 23, 44, 44 };
-            }
-        }
-
-        public ushort PrevIndex
-        {
-            get
-            {
-                return 7;
-            }
-        }
-        public byte[] ToArray()
-        {
-            throw new NotImplementedException();
-        }
-
-
-    }
-    public class Block : IScriptContainer
-    {
-        public Block()
-        {
-            //this.Inputs.Add(new TransactionInput());
-            //this.Outputs.Add(new TransactionOutput());
-        }
-        public byte[] GetMessage()
-        {
-            return new byte[] { 1 };
-            // throw new NotImplementedException();
-        }
-
-        public byte[] ToArray()
-        {
-            throw new NotImplementedException();
-        }
-        public int tcount = 4;
-        public List<TransactionInput> Inputs = new List<TransactionInput>();
-        public List<TransactionOutput> Outputs = new List<TransactionOutput>();
-    }
-    public class Header
-    {
-        public byte[] hash = new byte[] { 06, 05, 01 };
-    }
-
-    public class testapiservice : Neo.VM.IInteropService
-    {
-        public testapiservice()
+        public TestInteropService()
         {
             Register("System.Blockchain.GetContract", Blockchain_GetContract);
             Register("Neo.Blockchain.GetContract", Blockchain_GetContract);
@@ -189,14 +59,12 @@ namespace Neo.Compiler.DotNet.Utils
             Register("Neo.Runtime.Serialize", Runtime_Serialize);
             Register("Neo.Runtime.Deserialize", Runtime_Deserialize);
         }
-        private readonly Dictionary<uint, Func<ExecutionEngine, bool>> methods = new Dictionary<uint, Func<ExecutionEngine, bool>>();
-        private readonly Dictionary<uint, long> prices = new Dictionary<uint, long>();
 
         public bool Invoke(byte[] method, ExecutionEngine engine)
         {
             uint hash = method.Length == 4
-    ? BitConverter.ToUInt32(method, 0)
-    : System.Text.Encoding.ASCII.GetString(method).ToInteropMethodHash();
+                ? BitConverter.ToUInt32(method, 0)
+                : Encoding.ASCII.GetString(method).ToInteropMethodHash();
             if (!methods.TryGetValue(hash, out Func<ExecutionEngine, bool> func)) return false;
             return func(engine);
         }
@@ -221,6 +89,7 @@ namespace Neo.Compiler.DotNet.Utils
             Array = 0x80,
             Struct = 0x81,
         }
+
         private void SerializeStackItem(StackItem item, BinaryWriter writer)
         {
             //switch (item)
@@ -250,6 +119,7 @@ namespace Neo.Compiler.DotNet.Utils
             //        break;
             //}
         }
+
         protected virtual bool Runtime_Serialize(ExecutionEngine engine)
         {
             using (MemoryStream ms = new MemoryStream())
@@ -305,12 +175,14 @@ namespace Neo.Compiler.DotNet.Utils
             }
             return true;
         }
+
         protected virtual bool Runtime_CheckWitness(ExecutionEngine engine)
         {
             var hash = engine.CurrentContext.EvaluationStack.Pop();
             engine.CurrentContext.EvaluationStack.Push(true);
             return true;
         }
+
         //easy add for test
         protected virtual bool Runtime_Notify(ExecutionEngine engine)
         {
@@ -319,12 +191,14 @@ namespace Neo.Compiler.DotNet.Utils
             //var s2 = System.Text.Encoding.UTF8.GetString(array[1].GetByteArray());
             return true;
         }
+
         protected virtual bool Runtime_Log(ExecutionEngine engine)
         {
             var str = engine.CurrentContext.EvaluationStack.Pop().GetString();
             Console.WriteLine("log:" + str);
             return true;
         }
+
         protected virtual bool Runtime_GetTrigger(ExecutionEngine engine)
         {
             //var br = System.Windows.Forms.MessageBox.Show("选择入口", "yes =  0x00 no ==0x10 cancel==0x11", System.Windows.Forms.MessageBoxButtons.YesNoCancel);
@@ -347,9 +221,10 @@ namespace Neo.Compiler.DotNet.Utils
             engine.CurrentContext.EvaluationStack.Push(item);
             return true;
         }
+
         private static bool Transaction_GetInputs(ExecutionEngine engine)
         {
-            Transaction tx = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<Transaction>();
+            TestTransaction tx = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TestTransaction>();
             if (tx == null) return false;
 
             List<StackItem> array = new List<StackItem>();
@@ -365,122 +240,135 @@ namespace Neo.Compiler.DotNet.Utils
 
             return true;
         }
+
         private static bool Input_GetHash(ExecutionEngine engine)
         {
-            var input = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TransactionInput>();
+            var input = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TestTxInput>();
             if (input == null) return false;
             engine.CurrentContext.EvaluationStack.Push(input.PrevHash);
             return true;
         }
+
         private static bool Output_GetHash(ExecutionEngine engine)
         {
-            var v = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TransactionOutput>();
+            var v = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TestTxOutput>();
             if (v == null) return false;
             engine.CurrentContext.EvaluationStack.Push(v.PrevHash);
             return true;
         }
+
         private static bool Input_GetIndex(ExecutionEngine engine)
         {
-            var input = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TransactionInput>();
+            var input = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TestTxInput>();
             if (input == null) return false;
             engine.CurrentContext.EvaluationStack.Push((int)input.PrevIndex);
             return true;
         }
+
         private static bool Output_GetIndex(ExecutionEngine engine)
         {
-            var v = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TransactionOutput>();
+            var v = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TestTxOutput>();
             if (v == null) return false;
             engine.CurrentContext.EvaluationStack.Push((int)v.PrevIndex);
             return true;
         }
+
         private static bool Blockchain_GetHeight(ExecutionEngine engine)
         {
             engine.CurrentContext.EvaluationStack.Push((int)365);
             return true;
         }
+
         private static bool Blockchain_GetBlock(ExecutionEngine engine)
         {
             var b = engine.CurrentContext.EvaluationStack.Pop().GetByteArray();
             string text = System.Text.Encoding.UTF8.GetString(b);
             //var v = engine.EvaluationStack.Pop().GetBigInteger();
 
-            engine.CurrentContext.EvaluationStack.Push(StackItem.FromInterface(new Block()));
+            engine.CurrentContext.EvaluationStack.Push(StackItem.FromInterface(new TestBlock()));
             return true;
         }
+
         private static bool Blockchain_GetHeader(ExecutionEngine engine)
         {
             var b = engine.CurrentContext.EvaluationStack.Pop().GetBigInteger();
             //string text = System.Text.Encoding.UTF8.GetString(b);
             //var v = engine.EvaluationStack.Pop().GetBigInteger();
 
-            engine.CurrentContext.EvaluationStack.Push(StackItem.FromInterface(new Header()));
+            engine.CurrentContext.EvaluationStack.Push(StackItem.FromInterface(new TestHeader()));
             return true;
         }
+
         private static bool Blockchain_GetTransaction(ExecutionEngine engine)
         {
             var hash = engine.CurrentContext.EvaluationStack.Pop().GetByteArray();
             //string text = System.Text.Encoding.UTF8.GetString(b);
             //var v = engine.EvaluationStack.Pop().GetBigInteger();
 
-            engine.CurrentContext.EvaluationStack.Push(StackItem.FromInterface(new Transaction()));
+            engine.CurrentContext.EvaluationStack.Push(StackItem.FromInterface(new TestTransaction()));
             return true;
         }
+
         private static bool Blockchain_GetContract(ExecutionEngine engine)
         {
             var hash = engine.CurrentContext.EvaluationStack.Pop().GetByteArray();
             engine.CurrentContext.EvaluationStack.Push(new byte[0]);
             return true;
         }
+
         private static bool Header_GetHash(ExecutionEngine engine)
         {
-            var header = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<Header>();
+            var header = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TestHeader>();
             //string text = System.Text.Encoding.UTF8.GetString(b);
             //var v = engine.EvaluationStack.Pop().GetBigInteger();
 
-            engine.CurrentContext.EvaluationStack.Push(header.hash);
+            engine.CurrentContext.EvaluationStack.Push(header.Hash);
             return true;
         }
+
         private static bool Transaction_GetHash(ExecutionEngine engine)
         {
-            var header = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<Transaction>();
+            var header = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TestTransaction>();
             //string text = System.Text.Encoding.UTF8.GetString(b);
             //var v = engine.EvaluationStack.Pop().GetBigInteger();
 
-            engine.CurrentContext.EvaluationStack.Push(header.hash);
+            engine.CurrentContext.EvaluationStack.Push(header.Hash);
             return true;
         }
-
 
         private static bool Block_GetTransaction(ExecutionEngine engine)
         {
-            var block = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<Block>();
+            var block = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TestBlock>();
             var i = (int)engine.CurrentContext.EvaluationStack.Pop().GetBigInteger();
-            engine.CurrentContext.EvaluationStack.Push(StackItem.FromInterface(new Transaction()));
+            engine.CurrentContext.EvaluationStack.Push(StackItem.FromInterface(new TestTransaction()));
             return true;
         }
+
         private static bool Block_GetTransactionCount(ExecutionEngine engine)
         {
-            var block = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<Block>();
-            engine.CurrentContext.EvaluationStack.Push(block.tcount);
+            var block = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TestBlock>();
+            engine.CurrentContext.EvaluationStack.Push(block.TxCount);
             return true;
         }
+
         private static bool Header_GetTimestamp(ExecutionEngine engine)
         {
-            var b = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<Block>();
+            var b = (engine.CurrentContext.EvaluationStack.Pop() as VM.Types.InteropInterface).GetInterface<TestBlock>();
 
             engine.CurrentContext.EvaluationStack.Push((uint)3655);
             return true;
         }
-        static byte[] storage;
+
         private static bool Storage_Put(ExecutionEngine engine)
         {
             var context = engine.CurrentContext.EvaluationStack.Pop().GetByteArray();
             var key = engine.CurrentContext.EvaluationStack.Pop().GetByteArray();
             var value = engine.CurrentContext.EvaluationStack.Pop().GetByteArray();
-            storage = value;
+            byte[] storage = value;
             //engine.EvaluationStack.Push((uint)3655);
             return true;
         }
+
         private static bool Storage_Get(ExecutionEngine engine)
         {
             var context = engine.CurrentContext.EvaluationStack.Pop().GetByteArray();
@@ -489,12 +377,14 @@ namespace Neo.Compiler.DotNet.Utils
             engine.CurrentContext.EvaluationStack.Push((uint)3655);
             return true;
         }
+
         private static bool Storage_Delete(ExecutionEngine engine)
         {
             var context = engine.CurrentContext.EvaluationStack.Pop().GetBigInteger();
             var key = engine.CurrentContext.EvaluationStack.Pop().GetBigInteger();
             return true;
         }
+
         private static bool Storage_GetContext(ExecutionEngine engine)
         {
             engine.CurrentContext.EvaluationStack.Push((uint)3655);

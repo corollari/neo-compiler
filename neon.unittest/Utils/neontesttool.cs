@@ -6,25 +6,15 @@ using System.IO;
 
 namespace Neo.Compiler.DotNet.Utils
 {
-    class DefLogger : ILogger
+    internal class NeonTestTool
     {
-        public void Log(string log)
+        private readonly ILModule modIL;
+        private readonly ModuleConverter converterIL;
+        private readonly byte[] finalAVM;
+
+        public NeonTestTool(string filename)
         {
-            Console.WriteLine(log);
-        }
-    }
-    class NeonTestTool
-    {
-        public NeonTestTool(string dll)
-        {
-            this.Init(dll);
-        }
-        ILModule modIL;
-        ModuleConverter converterIL;
-        byte[] finalAVM;
-        void Init(string filename)
-        {
-            string onlyname = System.IO.Path.GetFileNameWithoutExtension(filename);
+            string onlyname = Path.GetFileNameWithoutExtension(filename);
             string filepdb = onlyname + ".pdb";
             var path = Path.GetDirectoryName(filename);
             if (!string.IsNullOrEmpty(path))
@@ -41,17 +31,17 @@ namespace Neo.Compiler.DotNet.Utils
             }
             var log = new DefLogger();
             this.modIL = new ILModule(log);
-            System.IO.Stream fs = null;
-            System.IO.Stream fspdb = null;
+            Stream fs;
+            Stream fspdb = null;
 
             //open file
             try
             {
-                fs = System.IO.File.OpenRead(filename);
+                fs = File.OpenRead(filename);
 
-                if (System.IO.File.Exists(filepdb))
+                if (File.Exists(filepdb))
                 {
-                    fspdb = System.IO.File.OpenRead(filepdb);
+                    fspdb = File.OpenRead(filepdb);
                 }
 
             }
@@ -88,6 +78,7 @@ namespace Neo.Compiler.DotNet.Utils
                 throw err;
             }
         }
+
         public string[] GetAllILFunction()
         {
             List<string> lists = new List<string>();
@@ -101,6 +92,7 @@ namespace Neo.Compiler.DotNet.Utils
             }
             return lists.ToArray();
         }
+
         public ILMethod FindMethod(string fromclass, string method)
         {
             foreach (var _class in modIL.mapType)
@@ -128,6 +120,7 @@ namespace Neo.Compiler.DotNet.Utils
             }
             return null;
         }
+
         public string GetFullMethodName(string fromclass, string method)
         {
             foreach (var _class in modIL.mapType)
@@ -147,11 +140,13 @@ namespace Neo.Compiler.DotNet.Utils
             }
             return null;
         }
+
         public NeoMethod GetNEOVMMethod(ILMethod method)
         {
             var neomethod = this.converterIL.methodLink[method];
             return neomethod;
         }
+
         public byte[] NeoMethodToBytes(NeoMethod method)
         {
             List<byte> bytes = new List<byte>();
@@ -166,9 +161,10 @@ namespace Neo.Compiler.DotNet.Utils
             }
             return bytes.ToArray();
         }
-        ExecutionEngine RunAVM(byte[] data, int addr = 0, StackItem[] _params = null)
+
+        private ExecutionEngine RunAVM(byte[] data, int addr = 0, StackItem[] _params = null)
         {
-            var engine = new ExecutionEngine(new Transaction(), new crypto(), new table(), new testapiservice());
+            var engine = new ExecutionEngine(new TestTransaction(), new TestCrypto(), new TestTable(), new TestInteropService());
             engine.LoadScript(data);
             //從指定地址開始執行
             engine.InvocationStack.Peek().InstructionPointer = addr;
@@ -185,17 +181,17 @@ namespace Neo.Compiler.DotNet.Utils
             //    engine.ExecuteNext();
             //}
             return engine;
-
         }
+
         public ExecutionEngine RunScript(int addr, StackItem[] _params = null)
         {
             return RunAVM(finalAVM, addr, _params);
         }
+
         public ExecutionEngine RunMethodAsAStandaloneAVM(NeoMethod method, StackItem[] _params = null)
         {
             var bytes = NeoMethodToBytes(method);
             return RunAVM(bytes, 0, _params);
         }
-
     }
 }

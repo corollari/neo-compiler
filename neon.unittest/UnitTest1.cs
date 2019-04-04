@@ -29,7 +29,7 @@ namespace Neo.Compiler.DotNet
         }
 
         [TestMethod]
-        public void GetALLILFunction()
+        public void GetAllILFunction()
         {
             var names = testtool.GetAllILFunction();
             foreach (var n in names)
