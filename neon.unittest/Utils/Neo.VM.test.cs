@@ -1,14 +1,9 @@
-﻿using System;
+﻿using Neo.VM;
+using System;
 using System.Collections.Generic;
-using Neo.VM;
 using System.IO;
-using Neo.VM.Types;
-using VMArray = Neo.VM.Types.Array;
-using VMBoolean = Neo.VM.Types.Boolean;
-using System.Numerics;
-using Neo.Compiler;
 
-namespace Neo.vmext
+namespace Neo.Compiler.DotNet.Utils
 {
     class container : IScriptContainer
     {

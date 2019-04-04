@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Neo.SmartContract.Framework;
 
 namespace net4smartcontract.test
 {
-    public class TestClass1 : Neo.SmartContract.Framework.SmartContract
+    public class TestClass1 : SmartContract
     {
         //default smartcontract entry point.
         //but the unittest can be init from anywhere

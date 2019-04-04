@@ -1,11 +1,12 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.Compiler.DotNet.Utils;
 
-namespace neon.unittest
+namespace Neo.Compiler.DotNet
 {
     [TestClass]
     public class UnitTest1
     {
-        static testtool.neontesttool testtool = new testtool.neontesttool("net4smartcontract.test.dll");
+        static neontesttool testtool = new neontesttool("net4smartcontract.test.dll");
         static void DumpAVM(Neo.Compiler.NeoMethod avmMethod)
         {
             System.Console.WriteLine("dump:" + avmMethod.displayName + " addr in avm:" + avmMethod.funcaddr);

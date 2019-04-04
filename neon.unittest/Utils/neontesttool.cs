@@ -1,13 +1,10 @@
-﻿using Neo.Compiler;
-using Neo.Compiler.MSIL;
+﻿using Neo.Compiler.MSIL;
 using Neo.VM;
-using Neo.vmext;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
-namespace neon.unittest.testtool
+namespace Neo.Compiler.DotNet.Utils
 {
     class DefLogger : ILogger
     {
