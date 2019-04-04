@@ -13,9 +13,9 @@ namespace Neo.Compiler.DotNet.Utils
             Console.WriteLine(log);
         }
     }
-    class neontesttool
+    class NeonTestTool
     {
-        public neontesttool(string dll)
+        public NeonTestTool(string dll)
         {
             this.Init(dll);
         }

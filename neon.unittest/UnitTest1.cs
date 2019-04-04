@@ -1,38 +1,43 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Compiler.DotNet.Utils;
+using System;
 
 namespace Neo.Compiler.DotNet
 {
     [TestClass]
     public class UnitTest1
     {
-        static neontesttool testtool = new neontesttool("net4smartcontract.test.dll");
-        static void DumpAVM(Neo.Compiler.NeoMethod avmMethod)
+        private static readonly NeonTestTool testtool = new NeonTestTool("net4smartcontract.test.dll");
+
+        private static void DumpAVM(NeoMethod avmMethod)
         {
-            System.Console.WriteLine("dump:" + avmMethod.displayName + " addr in avm:" + avmMethod.funcaddr);
+            Console.WriteLine("dump:" + avmMethod.displayName + " addr in avm:" + avmMethod.funcaddr);
             foreach (var c in avmMethod.body_Codes)
             {
-                System.Console.WriteLine(c.Key.ToString("X04") + "=>" + c.Value.ToString());
+                Console.WriteLine(c.Key.ToString("X04") + "=>" + c.Value.ToString());
             }
         }
-        static void DumpBytes(byte[] data)
+
+        private static void DumpBytes(byte[] data)
         {
-            System.Console.WriteLine("AVM=");
+            Console.WriteLine("AVM=");
             foreach (var b in data)
             {
-                System.Console.Write(b.ToString("X02"));
+                Console.Write(b.ToString("X02"));
             }
-            System.Console.WriteLine("");
+            Console.WriteLine("");
         }
+
         [TestMethod]
         public void GetALLILFunction()
         {
             var names = testtool.GetAllILFunction();
             foreach (var n in names)
             {
-                System.Console.WriteLine("got name:" + n);
+                Console.WriteLine("got name:" + n);
             }
         }
+
         [TestMethod]
         public void TestDumpAFunc()
         {
