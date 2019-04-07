@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\neon-lib\neon-lib.csproj" />
+    <ProjectReference Include="..\neon\neon.csproj" />
   </ItemGroup>
 
 </Project>
