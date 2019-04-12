@@ -21,5 +21,16 @@ namespace net4smartcontract.test
             var nb = new byte[] { 1, 2, 3, 4 };
             return nb[2];
         }
+        public static object UnitTest_BytesEqual()
+        {
+            byte[] script = new byte[] { 1, 2, 3 };
+            return script == new byte[] { };
+        }
+        public static object UnitTest_ObjectEqual()
+        {
+            object script = new byte[] { 1, 2, 3 };
+            object script2 = new byte[] { };
+            return script == script2;
+        }
     }
 }

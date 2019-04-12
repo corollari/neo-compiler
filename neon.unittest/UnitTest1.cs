@@ -41,7 +41,7 @@ namespace Neo.Compiler.DotNet
         [TestMethod]
         public void TestDumpAFunc()
         {
-            var ilmethod = testtool.FindMethod("TestClass1", "UnitTest_001");
+            var ilmethod = testtool.FindMethod("TestClass1", "UnitTest_BytesEqual");
             var neomethod = testtool.GetNEOVMMethod(ilmethod);
             DumpAVM(neomethod);
             var bytes = testtool.NeoMethodToBytes(neomethod);
@@ -65,6 +65,16 @@ namespace Neo.Compiler.DotNet
             // and check if the result is 3
 
             Assert.AreEqual(resultnum, 3);
+        }
+
+        [TestMethod]
+        public void TestBytesEqualFunc()
+        {
+            var ilmethod = testtool.FindMethod("TestClass1", "UnitTest_BytesEqual");
+            var neomethod = testtool.GetNEOVMMethod(ilmethod);
+            var result = testtool.RunScript(neomethod.funcaddr, null);
+            var resultnum = result.ResultStack.Peek().GetBoolean();
+            Assert.AreEqual(resultnum, false);
         }
     }
 }
