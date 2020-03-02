@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+dotnet /home/corollari/projects/neo-compiler/compiler/neon/bin/Release/netcoreapp2.0/neon.dll $1 --compatible
